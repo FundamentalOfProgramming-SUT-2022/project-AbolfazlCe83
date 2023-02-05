@@ -25,6 +25,7 @@ void cat(FILE *fp , char fileaddress[]);
 void copy(FILE *fp , int line_number , int char_pos ,int number_of_chars , char b_f[] , char fille_addres[]);
 void removestr(FILE *fp , int line_number , int char_pos ,int number_of_chars , char b_f[] , char fille_addres[]);
 void insertstr(FILE *fp , int line_number , int char_pos , char fileaddress[] , char string_to_be_inserted[]);
+void paste(FILE *fp , int line_number , int char_pos , char fileaddress[]);
 
 
 int main() {
@@ -119,7 +120,7 @@ int main() {
                 printf("invalid command\nfor more information type <help>!\n");
             }
         }
-        else if(!(strcmp(command , "copy")))
+        else if(!(strcmp(command , "copystr")))
         {
             FILE *for_function;
             char FILLE_ADDRESS[MAX_SIZE];
@@ -521,6 +522,91 @@ int main() {
                 printf("invalid command\nfor more information type <help>!\n");
             }
         }
+        else if(!(strcmp(command , "pastestr")))
+        {
+            FILE *for_function;
+            char FILLE_ADDRESS[MAX_SIZE];
+            char buffer[50];
+            getchar();
+            scanf("%s" , buffer);
+            if(!(strcmp(buffer , "--file")))
+            {
+                char file_address[200];
+                char directory[200];
+                getchar();
+                scanf("%s" , file_address);
+                int address_length = strlen(file_address);
+                if(file_address[0] != '/' && file_address[0] != '"') {
+                    char chert[MAX_SIZE];
+                    scanf("%[^\n]s" , chert);
+                    printf("invalid command\nfor more information type <help>!\n");
+                }
+                else if(file_address[0] == '"' && file_address[address_length - 1] == '"') {
+                    for(int i = 0; i < address_length - 2; i++) {
+                        directory[i] = file_address[i + 1];
+                        strcpy(FILLE_ADDRESS , directory + 1);
+                    }
+                    FILE *for_read = fopen(directory + 1 , "r");
+                    fclose(for_read);
+                    if(!for_read) {
+                        printf("The file doesnt exist!\n");
+                    }
+                    else
+                    {
+                        for_function = for_read;
+                    }
+                }
+                else
+                {
+                    FILE *forread = fopen(file_address + 1 , "r");
+                    fclose(forread);
+                    if(!forread) {
+                        printf("The file doesnt exist!\n");
+                    }
+                    else
+                    {
+                        for_function = forread;
+                        strcpy(FILLE_ADDRESS , file_address + 1);
+                    }
+
+                }
+
+                char position[50];
+                getchar();
+                scanf("%s" , position);
+                if(!(strcmp(position , "--pos")))
+                {
+                    int line_number = 0;
+                    char Two_dat;
+                    int char_pos = 0;
+                    scanf("%d%c%d" , &line_number , &Two_dat , &char_pos);
+                    FILE *clip = fopen("clipboard.txt" , "r");
+                    char *content_of_file;
+                    long numbytes;
+                    fseek(clip , 0L , SEEK_END);
+                    numbytes = ftell(clip);
+                    fseek(clip , 0L , SEEK_SET);
+                    content_of_file = (char*) calloc(numbytes , sizeof(char ));
+                    fread(content_of_file , sizeof (char ) , numbytes , clip);
+                    fclose(clip);
+                    FILE *fp = fopen(FILLE_ADDRESS , "r");
+                    fclose(fp);
+                    insertstr(fp , line_number , char_pos , FILLE_ADDRESS , content_of_file);
+                }
+                else
+                {
+                    char chert[MAX_SIZE];
+                    scanf("%[^\n]s" , chert);
+                    printf("invalid command\nfor more information type <help>!\n");
+                }
+            }
+            else
+            {
+                char chert[MAX_SIZE];
+                scanf("%[^\n]s" , chert);
+                printf("invalid command\nfor more information type <help>!\n");
+            }
+        }
         else
         {
             char chert[MAX_SIZE];
@@ -826,49 +912,58 @@ void insertstr(FILE *fp , int line_number , int char_pos , char fileaddress[] , 
     bool keep_reading = true;
     int keepline = 1;
     int first_index = 0;
-    int second_index = 0;
     if (flag == 0) {
         for (int j = 0; j < strlen(content_of_file); j++) {
             if (content_of_file[j] == '\n') {
                 keepline++;
                 if (keepline == line_number) {
                     first_index = j + 1;
-                }
-                if (keepline == line_number + 1) {
-                    second_index = j - 1;
                     break;
                 }
             }
         }
-        int length_of_string = second_index - first_index;
         if (char_pos + first_index >= strlen(content_of_file)) {
-            printf("This charachter doesn't exist in file!\nthe number of charachters is : %d\n",
-                   strlen(content_of_file));
+            printf("This charachter doesn't exist in file!\nthe number of charachters is : %d\n", strlen(content_of_file));
         }
         else
         {
 //            if(line_number == 1 &&)
             char_pos += first_index - 1;
-            char new_content_first_half[char_pos - 11];
+            char new_content_first_half[MAX_SIZE] = {0};
             int i = 0;
             for(; i <= char_pos; i++)
             {
                 new_content_first_half[i] = content_of_file[i];
             }
-            char new_content_second_half[strlen(content_of_file) - char_pos];
-            for(int j = 0; j < strlen(content_of_file) - char_pos; j++)
+            char new_content_second_half[MAX_SIZE] = {0};
+            for(int j = 0; j <= strlen(content_of_file) - char_pos + 1; j++)
             {
                 new_content_second_half[j] = content_of_file[i];
                 i++;
             }
             fp = fopen(fileaddress, "w");
-            fprintf(fp, "%s%s%s", new_content_first_half, string_to_be_inserted, new_content_second_half);
+            fprintf(fp , "%s%s%s" , new_content_first_half , string_to_be_inserted , new_content_second_half);
             fclose(fp);
-            if(line_number == 1)
-            {
-                removestr(fp , 1 , char_pos + 1 , strlen(string_to_be_inserted) , "-f" , fileaddress);
-            }
-
+            // if(line_number == 1)
+            // {
+            //     removestr(fp , 1 , char_pos + 1 , strlen(string_to_be_inserted), "-f" , fileaddress);
+            // }
         }
     }
+}
+
+void paste(FILE *fp , int line_number , int char_pos , char fileaddress[])
+{
+    FILE *ptr = fopen("clipboard.txt" , "r");
+    fp = fopen(fileaddress, "r");
+    char *content_of_file;
+    long numbytes;
+    fseek(ptr, 0L, SEEK_END);
+    numbytes = ftell(ptr);
+    fseek(ptr, 0L, SEEK_SET);
+    content_of_file = (char *) calloc(numbytes, sizeof(char));
+    fread(content_of_file, sizeof(char), numbytes, ptr);
+    fclose(fp);
+    fclose(ptr);
+    insertstr(fp , line_number , char_pos , fileaddress , content_of_file);
 }
