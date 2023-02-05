@@ -26,6 +26,8 @@ void copy(FILE *fp , int line_number , int char_pos ,int number_of_chars , char 
 void removestr(FILE *fp , int line_number , int char_pos ,int number_of_chars , char b_f[] , char fille_addres[]);
 void insertstr(FILE *fp , int line_number , int char_pos , char fileaddress[] , char string_to_be_inserted[]);
 void paste(FILE *fp , int line_number , int char_pos , char fileaddress[]);
+void tree(char *basePath, const int root);
+
 
 
 int main() {
@@ -607,6 +609,19 @@ int main() {
                 printf("invalid command\nfor more information type <help>!\n");
             }
         }
+        else if(!(strcmp(command , "tree")))
+        {
+
+            int depth = 0;
+            scanf("%d" , &depth);
+            if(depth < -1)
+            {
+                printf("Invalid depth!\n");
+            }
+            else {
+                tree("root" ,0);
+            }
+        }
         else
         {
             char chert[MAX_SIZE];
@@ -966,4 +981,39 @@ void paste(FILE *fp , int line_number , int char_pos , char fileaddress[])
     fclose(fp);
     fclose(ptr);
     insertstr(fp , line_number , char_pos , fileaddress , content_of_file);
+}
+
+void tree(char *basePath, const int root)
+{
+    int i;
+    char path[1000];
+    struct dirent *dp;
+    DIR *dir = opendir(basePath);
+
+    if (!dir)
+        return;
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
+        {
+            for (i=0; i<root; i++)
+            {
+                if (i%2 == 0 || i == 0)
+                    printf("%c", 179);
+                else
+                    printf(" ");
+
+            }
+
+            printf("%c%c%s\n", 195, 196, dp->d_name);
+
+            strcpy(path, basePath);
+            strcat(path, "/");
+            strcat(path, dp->d_name);
+            tree(path, root + 2);
+        }
+    }
+
+    closedir(dir);
 }
