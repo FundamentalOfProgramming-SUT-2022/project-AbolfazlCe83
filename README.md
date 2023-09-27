@@ -1,1 +1,1 @@
-I am computer engineer at Sharif university of technology
+I study computer engineering at Sharif university of technology
